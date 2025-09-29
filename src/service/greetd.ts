@@ -102,7 +102,9 @@ export class Greetd extends Service {
             ostream.put_string(json, null);
 
             const data = await istream.read_bytes_async(4, GLib.PRIORITY_DEFAULT, null);
-            const length = new Uint32Array(data.get_data()?.buffer || [0])[0];
+            const raw = data.get_data();
+            if (!raw) throw new Error('Failed to read data');
+            const length = new DataView(raw.buffer, raw.byteOffset, raw.byteLength).getUint32(0, true);
             const res = await istream.read_bytes_async(length, GLib.PRIORITY_DEFAULT, null);
             return JSON.parse(this._decoder.decode(res.get_data()!)) as Response;
         } finally {
